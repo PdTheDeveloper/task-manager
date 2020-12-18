@@ -4,7 +4,8 @@ const taskSchema = new mongoose.Schema({
     description : {
         type : String , 
         required : true , 
-        trim : true
+        trim : true , 
+        set : d => Task.saveTrimmedDesc(d)
     } ,
     completed : {
         type : Boolean ,
@@ -12,24 +13,14 @@ const taskSchema = new mongoose.Schema({
     }
 })
 
-taskSchema.methods.saveTrimmedDesc = function() {
-    const desc = this.description
-    const txtArr = desc.split(' ')
+taskSchema.static('saveTrimmedDesc' , function(text) {
+    const txtArr = text.split(' ')
     let resArr = txtArr.map((item) =>{
-        return item.charAt(0).toUpperCase() + item.slice(1)  
+        return item.charAt(0).toUpperCase() + item.slice(1)
     })
-    desc = resArr.join('')
-}
-
-taskSchema.pre('save' , async function(next) {
-    const task = this
-
-    if(task.isModified('description')) {
-        task.saveTrimmedDesc()
-    }
-
-    next()
+    return resArr.join('') 
 })
+
 
 const Task = mongoose.model('Task' , taskSchema)
 

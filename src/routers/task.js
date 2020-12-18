@@ -59,7 +59,7 @@ router.patch('/tasks/:id' , async (req , res) =>{
             return res.status(404).send()
         }
         
-        res.send(taskToUpdate)
+        res.send(task)
     } catch(err) {
         res.status(400).send(err)
     }

@@ -3,8 +3,7 @@ const Task = require('../models/task')
 const router = new express.Router()
 
 router.post('/tasks' , async (req , res) =>{
-    let task = new Task(req.body)
-    task.description = saveTrimmedDesc(task.description)
+    const task = new Task(req.body)
     
     try {
         await task.save()

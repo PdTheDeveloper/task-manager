@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
 const userSchema = new mongoose.Schema({
     name : {
@@ -9,10 +10,10 @@ const userSchema = new mongoose.Schema({
     } , 
     email : {
         type : String ,
+        unique : true ,
         required : true ,
         trim : true ,
         lowercase : true ,
-        // set : p => await bcrypt.hash(p , 8) ,
         validate(value) {
             if(!validator.isEmail(value)) {
                 throw new Error('The provided email is invalid!')
@@ -32,8 +33,40 @@ const userSchema = new mongoose.Schema({
     age : {
         type : Number ,
         default : 0
-    }
+    } , 
+    tokens : [{
+        token : {
+            type : String ,
+            required : true
+        }
+    }]
 })
+
+userSchema.statics.findByCredentials = async (email , password) =>{
+    const user = await User.findOne({email})
+
+    if(!user) {
+        throw new Error('No user found with that email')
+    }
+
+    const isMatch = await bcrypt.compare(password , user.password)
+
+    if(!isMatch) {
+        throw new Error('Your password is not correct')
+    }
+
+    return user
+}
+
+userSchema.methods.generateAuthToken = async function() {
+    const user = this
+    const token = jwt.sign({ _id : user._id.toString() } , 'justLearningNodeForMern')
+
+    user.tokens = user.tokens.concat({token})
+    await user.save()
+
+    return token
+}
 
 userSchema.pre('save' , async function(next) {
     const user = this
@@ -46,5 +79,6 @@ userSchema.pre('save' , async function(next) {
 })
 
 const User = mongoose.model('User' , userSchema)
+
 
 module.exports = User

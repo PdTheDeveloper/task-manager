@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 
+
 const taskSchema = new mongoose.Schema({
     description : {
         type : String , 
@@ -10,6 +11,11 @@ const taskSchema = new mongoose.Schema({
     completed : {
         type : Boolean ,
         default : false
+    } ,
+    owner : {
+        type : mongoose.SchemaTypes.ObjectId ,
+        required : true ,
+        ref : 'User'
     }
 })
 

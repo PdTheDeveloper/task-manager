@@ -28,26 +28,37 @@ router.post('/users/login' , async (req , res) =>{
     }
 })
 
-router.get('/users/me' , auth , async (req , res) =>{
-    res.send(req.user)
-})
+router.post('/users/logout' , auth , async (req , res) =>{
+    try {
+        req.user.tokens = req.user.tokens.filter((token) =>{
+            return token.token !== req.token
+        }) 
 
-router.get('/users/:id' , async (req , res) =>{
-    const _id = req.params.id
+        await req.user.save()
+        res.send()
 
-    try{
-        const user = await User.findById(_id)
-        if(!user) {
-            return res.status(404).send()
-        }
-    
-        res.send(user)
     } catch(err) {
         res.status(500).send(err)
     }
 })
 
-router.patch('/users/:id' , async (req , res) =>{
+router.post('/users/logoutAll' , auth , async (req , res) =>{
+    try {
+        req.user.tokens = []
+
+        await req.user.save()
+        res.send()
+
+    } catch(err) {
+        res.status(500).send()
+    }
+})
+
+router.get('/users/me' , auth , async (req , res) =>{
+    res.send(req.user)
+})
+
+router.patch('/users/me' , auth , async (req , res) =>{
     const updates = Object.keys(req.body)
     const allowedUps = ['name' , 'email' , 'password' , 'age']
     const hasValidUpdates = updates.every((update) => allowedUps.includes(update))
@@ -59,27 +70,22 @@ router.patch('/users/:id' , async (req , res) =>{
     }
 
     try{
-        const user = await User.findById(req.params.id)
-        updates.forEach((update) =>{user[update] = req.body[update]})
-        await user.save()
-        
-        if(!user) 
-            return res.status(404).send()
+        updates.forEach((update) =>{req.user[update] = req.body[update]})
 
-        res.send(user)
+        await req.user.save()
+        
+        res.send(req.user)
+
     } catch(err) {
         res.status(400).send(err)
     }
 })
 
-router.delete('/users/:id' , async (req , res) =>{
+router.delete('/users/me' , auth , async (req , res) =>{
     try {
-        const user = await User.findByIdAndDelete(req.params.id)
+        await req.user.remove()
+        res.send(req.user)
 
-        if(!user)
-            return res.status(404).send()
-            
-        res.send(user)
     } catch(err) {
         res.status(500).send(err)
     }

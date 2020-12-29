@@ -40,7 +40,12 @@ const userSchema = new mongoose.Schema({
             type : String ,
             required : true
         }
-    }]
+    }] ,
+    avatar : {
+        type : Buffer
+    }
+} , {
+    timestamps : true
 })
 
 userSchema.statics.findByCredentials = async (email , password) =>{
@@ -63,9 +68,9 @@ userSchema.methods.toJSON = function() {
     const user = this
     const userObject = user.toObject()
 
-    delete userObject._id
     delete userObject.password
     delete userObject.tokens
+    delete userObject.avatar
     delete userObject.__v
 
     return userObject
@@ -79,7 +84,7 @@ userSchema.virtual('tasks' , {
 
 userSchema.methods.generateAuthToken = async function() {
     const user = this
-    const token = jwt.sign({ _id : user._id.toString() } , 'justLearningNodeForMern')
+    const token = jwt.sign({ _id : user._id.toString() } , process.env.JWT_SECRET)
 
     user.tokens = user.tokens.concat({token})
     await user.save()

@@ -17,6 +17,8 @@ const taskSchema = new mongoose.Schema({
         required : true ,
         ref : 'User'
     }
+} , {
+    timestamps : true
 })
 
 taskSchema.static('saveTrimmedDesc' , function(text) {
@@ -27,6 +29,16 @@ taskSchema.static('saveTrimmedDesc' , function(text) {
     return resArr.join('') 
 })
 
+taskSchema.methods.toJSON = function(next) {
+    const task = this
+    const taskObject = task.toObject()
+
+    delete taskObject._id
+    delete taskObject.owner
+    delete taskObject.__V
+
+    return taskObject
+}
 
 const Task = mongoose.model('Task' , taskSchema)
 
